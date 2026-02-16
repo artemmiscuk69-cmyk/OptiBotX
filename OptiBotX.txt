@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OptiBotX PRO Asset Pack</title>
+    <style>
+        /* --- СТИЛИ ДЛЯ ЭКРАНА ВХОДА --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050510; z-index: 99999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .login-box {
+            background: #0b0b1a; padding: 30px; border-radius: 12px;
+            border: 1px solid #1a1a2e; text-align: center; width: 280px;
+            box-shadow: 0 0 20px rgba(91, 77, 255, 0.2);
+            transform: translateY(0);
+            animation: slideUp 0.6s ease-out;
+        }
+        .login-box h2 { color: white; margin: 0 0 20px 0; font-family: 'Segoe UI', sans-serif; }
+        .pass-input {
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px;
+            border: 1px solid #333; background: #161625; color: white;
+            font-size: 16px; outline: none; box-sizing: border-box; text-align: center;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .pass-input:focus { border-color: #5b4dff; box-shadow: 0 0 15px rgba(91, 77, 255, 0.5); }
+        .enter-btn {
+            width: 100%; padding: 12px; background: #5b4dff; border: none;
+            border-radius: 8px; color: white; font-weight: bold; cursor: pointer;
+            font-size: 16px; transition: all 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .enter-btn:hover { background: #4a3dcf; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(91, 77, 255, 0.4); }
+        .enter-btn:active { transform: translateY(0); }
+        .enter-btn::after {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px;
+            background: rgba(255,255,255,0.5); opacity: 0; border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        .enter-btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        #error-msg { color: #ff4d4d; font-size: 12px; margin-top: 10px; min-height: 15px; font-family: sans-serif; animation: shake 0.3s ease-in-out; }
+
+        /* --- ОСНОВНЫЕ СТИЛИ (тема по умолчанию тёмная) --- */
+        :root {
+            --bg-color: #050510;
+            --app-bg: #0b0b1a;
+            --border-color: #1a1a2e;
+            --text-color: white;
+            --secondary-bg: #161625;
+            --hover-color: #2a2a3f;
+            --accent: #5b4dff;
+            --accent-glow: rgba(91, 77, 255, 0.3);
+        }
+        body.light-theme {
+            --bg-color: #f0f2f5;
+            --app-bg: #ffffff;
+            --border-color: #ddd;
+            --text-color: #222;
+            --secondary-bg: #f5f5f5;
+            --hover-color: #e0e0e0;
+            --accent: #3f51b5;
+            --accent-glow: rgba(63, 81, 181, 0.3);
+        }
+        body {
+            margin: 0; padding: 0; background: var(--bg-color); color: var(--text-color);
+            font-family: 'Segoe UI', sans-serif; height: 100vh; 
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+        .app-container {
+            width: 100%; max-width: 400px; height: 98vh; background: var(--app-bg);
+            display: flex; flex-direction: column; padding: 15px; box-sizing: border-box;
+            position: relative; border: 1px solid var(--border-color); border-radius: 12px;
+            animation: fadeInScale 0.5s ease-out;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .logo h1 { font-size: 18px; margin: 0; color: var(--text-color); animation: glowPulse 2s infinite; }
+        .logo span { color: var(--accent); font-weight: 800; text-shadow: 0 0 8px var(--accent); }
+        .header-buttons { display: flex; gap: 5px; }
+        .icon-btn { 
+            background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-color); 
+            padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 14px;
+            transition: all 0.3s;
+        }
+        .icon-btn:hover { background: var(--hover-color); transform: scale(1.05); }
+
+        select { 
+            width: 100%; background: var(--secondary-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 12px; border-radius: 10px; margin-bottom: 10px; 
+            outline: none; appearance: none; cursor: pointer; transition: all 0.3s;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+        }
+        body.light-theme select {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+        }
+        select:hover { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        select:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+
+        .chart-container {
+            position: relative;
+            width: 100%; height: 280px; margin-bottom: 15px;
+        }
+        .chart-box { 
+            width: 100%; height: 100%; background: var(--app-bg); 
+            border-radius: 10px; border: 1px solid var(--border-color);
+            position: relative; overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+        .chart-box:hover { box-shadow: 0 0 20px var(--accent-glow); }
+        #mainChart { width: 100%; height: 100%; display: block; }
+        .chart-controls {
+            position: absolute; top: 5px; right: 5px; display: flex; gap: 5px; z-index: 10;
+        }
+        .chart-controls button {
+            background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-color);
+            width: 30px; height: 30px; border-radius: 15px; cursor: pointer; font-weight: bold;
+            transition: all 0.3s;
+        }
+        .chart-controls button:hover { background: var(--accent); color: white; }
+
+        .tf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+        
+        .tf-btn { 
+            background: var(--secondary-bg); border: 1px solid var(--border-color); color: #666; 
+            padding: 10px; border-radius: 8px; font-size: 12px; cursor: pointer; 
+            transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        
+        .tf-btn:hover {
+            transform: scale(1.1);
+            background: var(--hover-color);
+            color: var(--text-color);
+            border-color: var(--accent);
+            z-index: 10;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .tf-btn.active { 
+            background: var(--accent); color: white; border-color: var(--accent); 
+            box-shadow: 0 0 15px var(--accent-glow);
+            animation: pulse 1.5s infinite;
+        }
+        .tf-btn.active:hover { transform: scale(1.1); background: var(--accent); }
+
+        .analyze-btn { 
+            width: 100%; background: var(--accent); border: none; padding: 16px; border-radius: 12px; 
+            color: white; font-weight: bold; cursor: pointer; font-size: 16px; margin: 10px 0;
+            transition: all 0.3s; position: relative; overflow: hidden;
+        }
+        .analyze-btn:hover { 
+            background: var(--accent); transform: translateY(-2px); box-shadow: 0 10px 20px var(--accent-glow);
+        }
+        .analyze-btn:active { transform: translateY(0); }
+        .analyze-btn.loading {
+            pointer-events: none; opacity: 0.8;
+        }
+        .analyze-btn.loading::before {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
+            margin-top: -10px; margin-left: -10px; border: 2px solid transparent; border-top-color: white;
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        .analyze-btn.loading span {
+            opacity: 0;
+        }
+
+        .status-area { 
+            display: flex; justify-content: center; align-items: center; gap: 10px; height: 30px; margin-bottom: 10px;
+            animation: fadeIn 0.5s;
+        }
+        .dot { 
+            width: 12px; height: 12px; background: #2575fc; border-radius: 50%; 
+            box-shadow: 0 0 10px #2575fc;
+            animation: pulseDot 1.2s infinite;
+        }
+        
+        .result-display { 
+            width: 100%; padding: 12px; background: var(--secondary-bg); border: 1px solid var(--border-color); 
+            border-radius: 10px; text-align: center; font-weight: bold; display: none; margin-bottom: 10px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #snow-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            pointer-events: none; z-index: 1000; 
+            transition: opacity 0.3s;
+        }
+        #snow-layer.hidden { opacity: 0; }
+
+        /* Подсказка на свече */
+        #tooltip {
+            position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px;
+            border-radius: 4px; font-size: 10px; pointer-events: none; z-index: 1001;
+            display: none;
+        }
+
+        /* Индикатор SMA */
+        .indicator-btn {
+            background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-color);
+            padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;
+            transition: all 0.3s; margin-right: 5px;
+        }
+        .indicator-btn.active { background: var(--accent); color: white; }
+
+        /* Обучение (модальное окно) */
+        #tutorial-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+            visibility: hidden; opacity: 0; transition: 0.3s;
+        }
+        #tutorial-overlay.show { visibility: visible; opacity: 1; }
+        .tutorial-box {
+            background: var(--app-bg); border: 1px solid var(--border-color); border-radius: 12px;
+            padding: 20px; width: 280px; text-align: center;
+        }
+        .tutorial-box h3 { margin-top: 0; }
+        .tutorial-box button { background: var(--accent); border: none; color: white; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+
+        /* Анимации */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeInScale { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--accent-glow); } 70% { box-shadow: 0 0 0 10px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+        @keyframes pulseDot { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes glowPulse { 0% { text-shadow: 0 0 2px var(--accent); } 50% { text-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent); } 100% { text-shadow: 0 0 2px var(--accent); } }
+        @keyframes ripple { 0% { transform: scale(0, 0); opacity: 1; } 20% { transform: scale(25, 25); opacity: 1; } 100% { opacity: 0; transform: scale(40, 40); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 80% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-5px); } 40%,80% { transform: translateX(5px); } }
+
+        /* Фон графика */
+        .chart-box::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(91, 77, 255, 0.05), transparent 50%);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>OptiBotX Security</h2>
+        <input type="number" id="password-input" class="pass-input" placeholder="Введите код доступа">
+        <button onclick="checkAccess()" class="enter-btn">ВОЙТИ</button>
+        <div id="error-msg"></div>
+    </div>
+</div>
+
+<div id="tutorial-overlay">
+    <div class="tutorial-box">
+        <h3>Добро пожаловать в OptiBotX PRO!</h3>
+        <p>🕯️ Свайпай по графику для смены пары<br>📈 Нажми на свечу для деталей<br>❄️ Снег включается кнопкой вверху</p>
+        <button onclick="closeTutorial()">Понятно</button>
+    </div>
+</div>
+
+<div class="app-container" id="main-app" style="display: none;">
+    <canvas id="snow-layer"></canvas>
+    <div id="tooltip"></div>
+
+    <header>
+        <div class="logo">
+            <h1>AI OptiBotX <span>PRO</span></h1>
+            <div id="sub-header" style="font-size: 10px; color: #444;">Выбери валютную пару</div>
+        </div>
+        <div class="header-buttons">
+            <button id="themeBtn" class="icon-btn" onclick="toggleTheme()">🌓</button>
+            <button id="snowToggle" class="icon-btn" onclick="toggleSnow()">☃️</button>
+            <button id="langBtn" class="icon-btn">RU</button>
+        </div>
+    </header>
+
+    <select id="pair" onchange="changePair()">
+        <option selected>EUR/USD</option>
+        <option>AUD/CHF OTC</option><option>AUD/NZD OTC</option><option>AUD/USD OTC</option>
+        <option>EUR/TRY OTC</option><option>GBP/AUD OTC</option><option>JOD/CNY OTC</option>
+        <option>NZD/USD OTC</option><option>QAR/CNY OTC</option><option>UAH/USD OTC</option>
+        <option>USD/CAD OTC</option><option>USD/MXN OTC</option><option>USD/MYR OTC</option>
+        <option>USD/PHP OTC</option><option>USD/PKR OTC</option><option>ZAR/USD OTC</option>
+        <option>CHF/NOK OTC</option><option>SAR/CNY OTC</option><option>AUD/CAD OTC</option>
+        <option>USD/JPY OTC</option><option>EUR/AUD</option><option>GBP/AUD</option>
+        <option>TND/USD OTC</option><option>LBP/USD OTC</option><option>CAD/JPY OTC</option>
+        <option>AUD/JPY</option><option>USD/BRL OTC</option><option>GBP/JPY</option>
+        <option>GBP/USD OTC</option><option>OMR/CNY OTC</option><option>AUD/CAD</option>
+        <option>EUR/CHF</option><option>CHF/JPY OTC</option><option>GBP/USD</option>
+        <option>USD/INR OTC</option><option>USD/CHF</option><option>USD/COP OTC</option>
+        <option>CHF/JPY</option><option>EUR/JPY OTC</option><option>AUD/CHF</option>
+        <option>EUR/JPY</option><option>USD/JPY</option><option>CAD/JPY</option>
+        <option>EUR/HUF OTC</option><option>USD/RUB OTC</option><option>BHD/CNY OTC</option>
+        <option>USD/CAD</option><option>USD/VND OTC</option><option>CAD/CHF OTC</option>
+        <option>AED/CNY OTC</option><option>USD/THB OTC</option><option>AUD/USD</option>
+        <option>EUR/GBP OTC</option><option>EUR/NZD OTC</option><option>USD/DZD OTC</option>
+        <option>NZD/JPY OTC</option><option>NGN/USD OTC</option><option>AUD/JPY OTC</option>
+        <option>USD/CNH OTC</option><option>USD/CHF OTC</option><option>KES/USD OTC</option>
+        <option>GBP/JPY OTC</option><option>EUR/RUB OTC</option><option>USD/CLP OTC</option>
+        <option>USD/ARS OTC</option><option>USD/IDR OTC</option><option>USD/SGD OTC</option>
+        <option>YER/USD OTC</option><option>GBP/CAD</option><option>EUR/GBP</option>
+        <option>EUR/CAD</option><option>CAD/CHF</option><option>GBP/CHF</option>
+        <option>EUR/CHF OTC</option><option>EUR/USD OTC</option><option>MAD/USD OTC</option>
+        <option>USD/BDT OTC</option><option>USD/EGP OTC</option>
+    </select>
+
+    <div class="chart-container">
+        <div class="chart-box"><canvas id="mainChart"></canvas></div>
+        <div class="chart-controls">
+            <button onclick="zoomOut()">−</button>
+            <button onclick="zoomIn()">+</button>
+        </div>
+        <div style="position: absolute; bottom: 5px; left: 5px; display: flex; gap: 5px;">
+            <button id="smaBtn" class="indicator-btn" onclick="toggleSMA()">SMA 7</button>
+        </div>
+    </div>
+
+    <div class="tf-grid">
+        <button class="tf-btn" onclick="selectTf(this)">5s</button>
+        <button class="tf-btn" onclick="selectTf(this)">10s</button>
+        <button class="tf-btn" onclick="selectTf(this)">15s</button>
+        <button class="tf-btn" onclick="selectTf(this)">30s</button>
+        <button class="tf-btn active" onclick="selectTf(this)">1m</button>
+        <button class="tf-btn" onclick="selectTf(this)">2m</button>
+        <button class="tf-btn" onclick="selectTf(this)">5m</button>
+        <button class="tf-btn" onclick="selectTf(this)">15m</button>
+    </div>
+
+    <button id="anBtn" class="analyze-btn" onclick="startAnalysis(this)"><span>Анализировать</span></button>
+
+    <div id="status" class="status-area">
+        <div class="dot"></div> <span id="wait-msg">Ожидание...</span>
+    </div>
+
+    <div id="result" class="result-display"></div>
+
+</div>
+
+<script>
+    // --- Глобальные переменные ---
+    const canvas = document.getElementById('mainChart');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    let candles = [];
+    let smaData = [];
+    let showSMA = false;
+    let candleCount = 18; // для масштабирования
+    let snowEnabled = false; // снег по умолчанию выключен
+    let curLang = 'RU';
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    // --- Словарь (без калькулятора) ---
+    const dict = {
+        RU: { sub: "Выбери валютную пару", an: "Анализировать", wait: "Ожидание...", up: "ВВЕРХ ", down: "ВНИЗ " },
+        EN: { sub: "Select pair", an: "Analyze", wait: "Waiting...", up: "BUY ", down: "SELL " },
+        ES: { sub: "Elegir par", an: "Analizar", wait: "Espera...", up: "ALZA ", down: "BAJA " }
+    };
+
+    // --- Инициализация при входе ---
+    function checkAccess() {
+        const pass = document.getElementById('password-input').value;
+        const overlay = document.getElementById('login-overlay');
+        const app = document.getElementById('main-app');
+        const err = document.getElementById('error-msg');
+        if(pass === '7072010') {
+            overlay.style.animation = 'fadeOut 0.3s forwards';
+            setTimeout(() => {
+                overlay.style.display = 'none'; 
+                app.style.display = 'flex';
+                app.style.animation = 'fadeInScale 0.5s ease-out';
+                initChart();
+                setupSnow();
+                // Показываем обучение при первом входе
+                if (!localStorage.getItem('tutorialShown')) {
+                    document.getElementById('tutorial-overlay').classList.add('show');
+                    localStorage.setItem('tutorialShown', 'true');
+                }
+            }, 300);
+        } else {
+            err.innerText = "Неверный код доступа!";
+            err.style.animation = 'shake 0.3s';
+            setTimeout(() => err.style.animation = '', 300);
+        }
+    }
+
+    function closeTutorial() {
+        document.getElementById('tutorial-overlay').classList.remove('show');
+    }
+
+    // --- Снег ---
+    const sCanvas = document.getElementById('snow-layer');
+    const sCtx = sCanvas.getContext('2d');
+    let flakes = [];
+    let snowAnimation;
+    function setupSnow() {
+        sCanvas.width = sCanvas.parentElement.clientWidth;
+        sCanvas.height = sCanvas.parentElement.clientHeight;
+        flakes = Array.from({length: 60}, () => ({
+            x: Math.random()*sCanvas.width, y: Math.random()*sCanvas.height, r: Math.random()*3+1, d: Math.random()*1+0.5, angle: Math.random()*360
+        }));
+        if (snowAnimation) cancelAnimationFrame(snowAnimation);
+        drawSnow();
+    }
+    function drawSnow() {
+        if (!snowEnabled) {
+            sCtx.clearRect(0,0,sCanvas.width, sCanvas.height);
+            snowAnimation = requestAnimationFrame(drawSnow);
+            return;
+        }
+        sCtx.clearRect(0,0,sCanvas.width, sCanvas.height);
+        sCtx.fillStyle = "rgba(255,255,255,0.6)";
+        flakes.forEach(f => {
+            sCtx.save();
+            sCtx.translate(f.x, f.y);
+            sCtx.rotate(f.angle * Math.PI/180);
+            sCtx.beginPath(); sCtx.arc(0, 0, f.r, 0, Math.PI*2); sCtx.fill();
+            sCtx.restore();
+            f.y += f.d; f.x += Math.sin(f.angle) * 0.2;
+            if(f.y > sCanvas.height) { f.y = -5; f.x = Math.random()*sCanvas.width; }
+            if(f.x > sCanvas.width) f.x = 0; if(f.x < 0) f.x = sCanvas.width;
+        });
+        snowAnimation = requestAnimationFrame(drawSnow);
+    }
+    function toggleSnow() {
+        snowEnabled = !snowEnabled;
+        document.getElementById('snowToggle').innerText = snowEnabled ? '❄️' : '☃️';
+    }
+
+    // --- Тема ---
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+    }
+
+    // --- Язык ---
+    document.getElementById('langBtn').onclick = function() {
+        curLang = curLang === 'RU' ? 'EN' : (curLang === 'EN' ? 'ES' : 'RU');
+        this.innerText = curLang;
+        updateUILang();
+    };
+    function updateUILang() {
+        document.getElementById('sub-header').innerText = dict[curLang].sub;
+        document.getElementById('anBtn').innerHTML = `<span>${dict[curLang].an}</span>`;
+        document.getElementById('wait-msg').innerText = dict[curLang].wait;
+    }
+
+    // --- График ---
+    function setupCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+    }
+
+    function initChart() {
+        setupCanvas(); candles = [];
+        let price = 100;
+        for(let i=0; i<candleCount; i++) { 
+            let open = price;
+            let close = price + (Math.random() - 0.5) * 15;
+            candles.push({ 
+                open, close, 
+                high: Math.max(open, close) + Math.random()*5 + 3, 
+                low: Math.min(open, close) - Math.random()*5 - 3,
+                progress: 1 // сразу готовы
+            });
+            price = close;
+        }
+        calculateSMA();
+        render();
+    }
+
+    function calculateSMA(period = 7) {
+        smaData = [];
+        for (let i = period-1; i < candles.length; i++) {
+            let sum = 0;
+            for (let j = i-period+1; j <= i; j++) sum += candles[j].close;
+            smaData.push({ index: i, value: sum/period });
+        }
+    }
+
+    function drawGrid(w, h, minP, maxP) {
+        ctx.strokeStyle = "#1e1e2f";
+        ctx.lineWidth = 0.5;
+        const levels = 5;
+        for (let i = 0; i <= levels; i++) {
+            let y = h * 0.15 + (h * 0.7 / levels) * i;
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y);
+            ctx.strokeStyle = document.body.classList.contains('light-theme') ? "#ccc" : "#1e1e2f";
+            ctx.stroke();
+            let price = maxP - (i / levels) * (maxP - minP);
+            ctx.fillStyle = "#666"; ctx.font = "8px 'Segoe UI'";
+            ctx.fillText(price.toFixed(2), 5, y-2);
+        }
+        for (let i = 1; i < candles.length; i++) {
+            let x = (i / candles.length) * w;
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h);
+            ctx.strokeStyle = document.body.classList.contains('light-theme') ? "#ddd" : "#1a1a2a";
+            ctx.stroke();
+        }
+    }
+
+    function render() {
+        const w = canvas.width / dpr; const h = canvas.height / dpr;
+        ctx.clearRect(0,0, w, h);
+        const allPrices = candles.flatMap(c => [c.high, c.low]);
+        const minP = Math.min(...allPrices); const maxP = Math.max(...allPrices);
+        const range = (maxP - minP) || 10;
+        const getY = (p) => h - ((p - minP) / range) * (h * 0.7) - (h * 0.15);
+
+        drawGrid(w, h, minP, maxP);
+
+        const candleWidth = w / candles.length;
+        candles.forEach((c, i) => {
+            const x = i * candleWidth + (candleWidth * 0.15);
+            const isUp = c.close >= c.open;
+            const color = isUp ? '#00ff88' : '#ff4d4d';
+            
+            // тень
+            ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(x + (candleWidth * 0.35), getY(c.high)); ctx.lineTo(x + (candleWidth * 0.35), getY(c.low)); ctx.stroke();
+
+            // тело с прогрессом
+            let openY = getY(c.open);
+            let closeY = getY(c.close);
+            let bodyY, bodyH;
+            if (isUp) {
+                let currentCloseY = openY - (openY - closeY) * c.progress;
+                bodyY = currentCloseY; bodyH = openY - currentCloseY;
+            } else {
+                let currentCloseY = openY + (closeY - openY) * c.progress;
+                bodyY = openY; bodyH = currentCloseY - openY;
+            }
+            if (c.progress > 0 && bodyH > 0.5) {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                let rectX = x, rectY = bodyY, rectW = candleWidth * 0.7, rectH = bodyH, radius = 2;
+                ctx.moveTo(rectX + radius, rectY); ctx.lineTo(rectX + rectW - radius, rectY);
+                ctx.quadraticCurveTo(rectX + rectW, rectY, rectX + rectW, rectY + radius);
+                ctx.lineTo(rectX + rectW, rectY + rectH - radius);
+                ctx.quadraticCurveTo(rectX + rectW, rectY + rectH, rectX + rectW - radius, rectY + rectH);
+                ctx.lineTo(rectX + radius, rectY + rectH);
+                ctx.quadraticCurveTo(rectX, rectY + rectH, rectX, rectY + rectH - radius);
+                ctx.lineTo(rectX, rectY + radius);
+                ctx.quadraticCurveTo(rectX, rectY, rectX + radius, rectY);
+                ctx.closePath(); ctx.fill();
+            }
+        });
+
+        // SMA линия
+        if (showSMA && smaData.length > 1) {
+            ctx.beginPath(); ctx.strokeStyle = '#ffaa00'; ctx.lineWidth = 2;
+            smaData.forEach((pt, idx) => {
+                let x = (pt.index / candles.length) * w + candleWidth/2;
+                let y = getY(pt.value);
+                if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+    }
+
+    // Обновление свечей (эмуляция реальных данных)
+    setInterval(() => {
+        if(candles.length === 0) return;
+        candles.shift();
+        let last = candles[candles.length-1];
+        let nO = last.close;
+        let nC = nO + (Math.random() - 0.5) * 8;
+        let newCandle = { 
+            open: nO, close: nC, 
+            high: Math.max(nO, nC) + Math.random()*4 + 2, 
+            low: Math.min(nO, nC) - Math.random()*4 - 2,
+            progress: 0 
+        };
+        candles.push(newCandle);
+        calculateSMA();
+        let progress = 0;
+        function animateNew() { progress += 0.05; newCandle.progress = Math.min(progress, 1); render(); if (progress < 1) requestAnimationFrame(animateNew); }
+        animateNew();
+    }, 3000); // раз в 3 сек для наглядности
+
+    // --- Масштабирование ---
+    function zoomIn() {
+        if (candleCount > 5) candleCount -= 2;
+        initChart();
+    }
+    function zoomOut() {
+        if (candleCount < 30) candleCount += 2;
+        initChart();
+    }
+
+    // --- Индикатор SMA ---
+    function toggleSMA() {
+        showSMA = !showSMA;
+        document.getElementById('smaBtn').classList.toggle('active', showSMA);
+        render();
+    }
+
+    // --- Подсказка на свече ---
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const x = (e.clientX - rect.left) * scaleX / dpr;
+        const candleWidth = (canvas.width / dpr) / candles.length;
+        const idx = Math.floor(x / candleWidth);
+        if (idx >= 0 && idx < candles.length) {
+            const c = candles[idx];
+            document.getElementById('tooltip').style.display = 'block';
+            document.getElementById('tooltip').style.left = e.pageX + 10 + 'px';
+            document.getElementById('tooltip').style.top = e.pageY - 20 + 'px';
+            document.getElementById('tooltip').innerHTML = `O: ${c.open.toFixed(2)} H: ${c.high.toFixed(2)} L: ${c.low.toFixed(2)} C: ${c.close.toFixed(2)}`;
+        } else {
+            document.getElementById('tooltip').style.display = 'none';
+        }
+    });
+    canvas.addEventListener('mouseleave', () => document.getElementById('tooltip').style.display = 'none');
+
+    // --- Свайпы для смены пары ---
+    canvas.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+    canvas.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        if (touchEndX - touchStartX > 50) { // свайп вправо - предыдущая пара
+            let sel = document.getElementById('pair');
+            if (sel.selectedIndex > 0) sel.selectedIndex--;
+            else sel.selectedIndex = sel.options.length - 1;
+            changePair();
+        } else if (touchStartX - touchEndX > 50) { // свайп влево - следующая
+            let sel = document.getElementById('pair');
+            if (sel.selectedIndex < sel.options.length - 1) sel.selectedIndex++;
+            else sel.selectedIndex = 0;
+            changePair();
+        }
+    });
+
+    function changePair() {
+        // эмуляция загрузки - скелетон
+        canvas.style.opacity = '0.3';
+        setTimeout(() => {
+            initChart();
+            canvas.style.opacity = '1';
+        }, 500);
+    }
+
+    // --- Анализ (без лимита и истории, с вибрацией вместо звука) ---
+    function startAnalysis(btn) {
+        const res = document.getElementById('result');
+        const stat = document.getElementById('status');
+        res.style.display = 'none'; 
+        stat.style.display = 'flex';
+        btn.classList.add('loading');
+        
+        setTimeout(() => {
+            btn.classList.remove('loading');
+            stat.style.display = 'none'; 
+            res.style.display = 'block';
+            const isUp = Math.random() > 0.5;
+            res.style.color = isUp ? '#00ff88' : '#ff4d4d';
+            res.style.borderColor = isUp ? '#00ff88' : '#ff4d4d';
+            let signal = `${dict[curLang][isUp?'up':'down']} (${Math.floor(Math.random()*15+82)}%)`;
+            res.innerHTML = signal;
+            res.style.animation = 'popIn 0.4s';
+            setTimeout(() => res.style.animation = '', 400);
+
+            // Вибрация через Telegram HapticFeedback
+            if (window.Telegram?.WebApp?.HapticFeedback) {
+                if (isUp) {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                } else {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+                }
+                // дополнительно лёгкий impact для большей «сочности»
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+            }
+
+            // Конфетти (имитация)
+            confettiEffect(isUp);
+        }, 1500);
+    }
+
+    function confettiEffect(isUp) {
+        console.log('🎉 Confetti', isUp ? 'green' : 'red');
+    }
+
+    function selectTf(btn) {
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    window.onload = () => { /* уже в checkAccess */ };
+</script>
+</body>
+</html>
